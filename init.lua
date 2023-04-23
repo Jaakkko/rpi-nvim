@@ -2,7 +2,7 @@ local sections = {
   ['mappings'] = function()
     -- <leader>t for telescope commands
     -- <leader>s for treesitter commands
-    vim.g.mapleader = '§'
+    vim.g.mapleader = '¨'
     vim.keymap.set('n', '<leader>pv', vim.cmd.Ex)
 
     vim.keymap.set('', '$', '<End>')
@@ -71,7 +71,7 @@ local sections = {
 
     vim.opt.termguicolors = true
 
-    vim.opt.scrolloff = 8
+    vim.opt.scrolloff = 1
     vim.opt.signcolumn = 'yes'
 
     vim.opt.imcmdline = true
@@ -128,11 +128,6 @@ local sections = {
           end
         end)
       end,
-    }
-    use {
-      'williamboman/mason.nvim',
-      'williamboman/mason-lspconfig.nvim',
-      'neovim/nvim-lspconfig',
     }
     use {
       'nvim-treesitter/nvim-treesitter',
@@ -199,6 +194,7 @@ local sections = {
       config = function()
         local builtin = require 'telescope.builtin'
         vim.keymap.set('n', '<leader>th', builtin.command_history)
+        vim.keymap.set('n', '<leader>tb', builtin.buffers)
       end,
     }
     use {
@@ -234,16 +230,161 @@ local sections = {
         }
       end,
     }
-    use 'jose-elias-alvarez/null-ls.nvim'
+    use {
+      'jose-elias-alvarez/null-ls.nvim',
+      config = function()
+        local null_ls = require 'null-ls'
+        null_ls.setup {
+          sources = {
+            null_ls.builtins.formatting.stylua,
+            null_ls.builtins.code_actions.gitsigns,
+          },
+        }
+      end,
+    }
     use_rocks 'jsregexp'
-    use 'L3MON4D3/LuaSnip'
-    use 'rafamadriz/friendly-snippets'
-    use 'saadparwaiz1/cmp_luasnip'
-    use 'hrsh7th/cmp-nvim-lua'
-    use 'hrsh7th/cmp-nvim-lsp'
-    use 'hrsh7th/nvim-cmp'
-    use 'windwp/nvim-autopairs'
-    use 'simrat39/rust-tools.nvim'
+    use {
+      'williamboman/mason.nvim',
+      'williamboman/mason-lspconfig.nvim',
+      'neovim/nvim-lspconfig',
+      'L3MON4D3/LuaSnip',
+      'rafamadriz/friendly-snippets',
+      'saadparwaiz1/cmp_luasnip',
+      'hrsh7th/cmp-nvim-lua',
+      'hrsh7th/cmp-nvim-lsp',
+      'hrsh7th/nvim-cmp',
+      'windwp/nvim-autopairs',
+      'simrat39/rust-tools.nvim',
+    }
+  end,
+  ['cmp'] = function()
+    local cmp = require 'cmp'
+    local luasnip = require 'luasnip'
+    luasnip.setup {
+      region_check_events = 'CursorHold,InsertLeave',
+      -- those are for removing deleted snippets, also a common problem
+      delete_check_events = 'TextChanged,InsertEnter',
+      enable_autosnippets = true,
+    }
+
+    -- autopairs
+    require('nvim-autopairs').setup()
+    local cmp_autopairs = require 'nvim-autopairs.completion.cmp'
+
+    cmp.event:on('confirm_done', cmp_autopairs.on_confirm_done())
+    cmp.setup {
+      snippet = {
+        expand = function(args)
+          luasnip.lsp_expand(args.body)
+        end,
+      },
+      window = {
+        completion = cmp.config.window.bordered(),
+        documentation = cmp.config.window.bordered(),
+      },
+      mapping = cmp.mapping.preset.insert {
+        ['<C-space>'] = cmp.mapping.complete(),
+        ['<C-e>'] = cmp.mapping.abort(),
+        ['<C-y>'] = cmp.mapping.confirm { select = true },
+        ['<Tab>'] = cmp.mapping(function(fallback)
+          local has_words_before = function()
+            unpack = unpack or table.unpack
+            local line, col = unpack(vim.api.nvim_win_get_cursor(0))
+            return col ~= 0 and vim.api.nvim_buf_get_lines(0, line - 1, line, true)[1]:sub(col, col):match '%s' == nil
+          end
+          if luasnip.expand_or_locally_jumpable() then
+            luasnip.expand_or_jump()
+          elseif has_words_before() then
+            cmp.complete()
+          else
+            fallback()
+          end
+        end, { 'i', 's' }),
+        ['<S-Tab>'] = cmp.mapping(function(fallback)
+          if luasnip.jumpable(-1) then
+            luasnip.jump(-1)
+          else
+            fallback()
+          end
+        end, { 'i', 's' }),
+      },
+      formatting = {
+        fields = { 'kind', 'abbr', 'menu' },
+        format = function(entry, vim_item)
+          -- Kind icons
+          vim_item.menu = ({
+            copilot = '[Copilot]',
+            luasnip = 'LuaSnip',
+            nvim_lua = '[NVim Lua]',
+            nvim_lsp = '[LSP]',
+            buffer = '[Buffer]',
+            path = '[Path]',
+          })[entry.source.name]
+          return vim_item
+        end,
+      },
+      sources = cmp.config.sources {
+        { name = 'luasnip' },
+        { name = 'nvim_lsp' },
+        { name = 'nvim_lua' },
+      },
+      confirm_opts = {
+        behavior = cmp.ConfirmBehavior.Replace,
+        select = false,
+      },
+      experimental = {
+        ghost_text = true,
+      },
+    }
+  end,
+  ['lsp'] = function()
+    local lsp_capabilities = require('cmp_nvim_lsp').default_capabilities()
+    local lspconfig = require 'lspconfig'
+    local lsp_attach = function(_, bufnr)
+      local bufopts = { noremap = true, silent = true, buffer = bufnr }
+      vim.keymap.set('n', '<leader>f', vim.lsp.buf.format, bufopts)
+    end
+    require('mason').setup()
+    require('mason-lspconfig').setup {
+      ensure_installed = { 'lua_ls', 'rust_analyzer' },
+    }
+    require('mason-lspconfig').setup_handlers {
+      function(server_name)
+        lspconfig[server_name].setup {
+          on_attach = lsp_attach,
+          capabilities = lsp_capabilities,
+        }
+      end,
+      ['lua_ls'] = function()
+        lspconfig.lua_ls.setup {
+          on_attach = lsp_attach,
+          capabilities = lsp_capabilities,
+          settings = {
+            Lua = {
+              diagnostics = {
+                globals = { 'vim' },
+              },
+              completion = {
+                callSnippet = 'Both',
+              },
+            },
+          },
+        }
+      end,
+      ['rust_analyzer'] = function()
+        local rt = require 'rust-tools'
+        rt.setup {
+          server = {
+            on_attach = function(client, bufnr)
+              vim.keymap.set('n', '<C-space>', rt.hover_actions.hover_actions, { buffer = bufnr })
+              vim.keymap.set('n', '<leader>a', rt.code_action_group.code_action_group, { buffer = bufnr })
+              return lsp_attach(client, bufnr)
+            end,
+            capabilities = lsp_capabilities,
+          },
+        }
+      end,
+    }
   end,
 }
 
@@ -254,140 +395,3 @@ for section, fn in pairs(sections) do
     require('packer').startup(fn)
   end
 end
-
-local cmp = require 'cmp'
-local luasnip = require 'luasnip'
-luasnip.setup {
-  region_check_events = 'CursorHold,InsertLeave',
-  -- those are for removing deleted snippets, also a common problem
-  delete_check_events = 'TextChanged,InsertEnter',
-  enable_autosnippets = true,
-}
-
--- autopairs
-require('nvim-autopairs').setup()
-local cmp_autopairs = require 'nvim-autopairs.completion.cmp'
-
-cmp.event:on('confirm_done', cmp_autopairs.on_confirm_done())
-cmp.setup {
-  snippet = {
-    expand = function(args)
-      luasnip.lsp_expand(args.body)
-    end,
-  },
-  window = {
-    completion = cmp.config.window.bordered(),
-    documentation = cmp.config.window.bordered(),
-  },
-  mapping = cmp.mapping.preset.insert {
-    ['<C-space>'] = cmp.mapping.complete(),
-    ['<C-e>'] = cmp.mapping.abort(),
-    ['<C-y>'] = cmp.mapping.confirm { select = true },
-    ['<Tab>'] = cmp.mapping(function(fallback)
-      local has_words_before = function()
-        unpack = unpack or table.unpack
-        local line, col = unpack(vim.api.nvim_win_get_cursor(0))
-        return col ~= 0 and vim.api.nvim_buf_get_lines(0, line - 1, line, true)[1]:sub(col, col):match '%s' == nil
-      end
-      if luasnip.expand_or_locally_jumpable() then
-        luasnip.expand_or_jump()
-      elseif has_words_before() then
-        cmp.complete()
-      else
-        fallback()
-      end
-    end, { 'i', 's' }),
-    ['<S-Tab>'] = cmp.mapping(function(fallback)
-      if luasnip.jumpable(-1) then
-        luasnip.jump(-1)
-      else
-        fallback()
-      end
-    end, { 'i', 's' }),
-  },
-  formatting = {
-    fields = { 'kind', 'abbr', 'menu' },
-    format = function(entry, vim_item)
-      -- Kind icons
-      vim_item.menu = ({
-        copilot = '[Copilot]',
-        luasnip = 'LuaSnip',
-        nvim_lua = '[NVim Lua]',
-        nvim_lsp = '[LSP]',
-        buffer = '[Buffer]',
-        path = '[Path]',
-      })[entry.source.name]
-      return vim_item
-    end,
-  },
-  sources = cmp.config.sources {
-    { name = 'luasnip' },
-    { name = 'nvim_lsp' },
-    { name = 'nvim_lua' },
-  },
-  confirm_opts = {
-    behavior = cmp.ConfirmBehavior.Replace,
-    select = false,
-  },
-  experimental = {
-    ghost_text = true,
-  },
-}
-
-local null_ls = require 'null-ls'
-null_ls.setup {
-  sources = {
-    null_ls.builtins.formatting.stylua,
-    null_ls.builtins.code_actions.gitsigns,
-  },
-}
-local lsp_capabilities = require('cmp_nvim_lsp').default_capabilities()
-local lspconfig = require 'lspconfig'
-local lsp_attach = function(_, bufnr)
-  local bufopts = { noremap = true, silent = true, buffer = bufnr }
-  vim.keymap.set('n', '<leader>f', function()
-    vim.lsp.buf.format { async = true }
-  end, bufopts)
-end
-
-require('mason').setup()
-require('mason-lspconfig').setup {
-  ensure_installed = { 'lua_ls', 'rust_analyzer' },
-}
-require('mason-lspconfig').setup_handlers {
-  function(server_name)
-    lspconfig[server_name].setup {
-      on_attach = lsp_attach,
-      capabilities = lsp_capabilities,
-    }
-  end,
-  ['lua_ls'] = function()
-    lspconfig.lua_ls.setup {
-      on_attach = lsp_attach,
-      capabilities = lsp_capabilities,
-      settings = {
-        Lua = {
-          diagnostics = {
-            globals = { 'vim' },
-          },
-          completion = {
-            callSnippet = 'Both',
-          },
-        },
-      },
-    }
-  end,
-  ['rust_analyzer'] = function()
-    local rt = require 'rust-tools'
-    rt.setup {
-      server = {
-        on_attach = function(client, bufnr)
-          vim.keymap.set('n', '<C-space>', rt.hover_actions.hover_actions, { buffer = bufnr })
-          vim.keymap.set('n', '<leader>a', rt.code_action_group.code_action_group, { buffer = bufnr })
-          return lsp_attach(client, bufnr)
-        end,
-        capabilities = lsp_capabilities,
-      },
-    }
-  end,
-}
