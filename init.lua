@@ -1,5 +1,7 @@
 local sections = {
   ['mappings'] = function()
+    -- <leader>t for telescope commands
+    -- <leader>s for treesitter commands
     vim.g.mapleader = '§'
     vim.keymap.set('n', '<leader>pv', vim.cmd.Ex)
 
@@ -54,11 +56,11 @@ local sections = {
     vim.opt.shiftwidth = 2
     vim.opt.softtabstop = 2
     vim.opt.expandtab = true
-
     vim.opt.smartindent = true
 
     vim.opt.wrap = false
 
+    vim.opt.updatetime = 100
     vim.opt.swapfile = false
     vim.opt.backup = false
     vim.opt.undodir = os.getenv 'HOME' .. '/.vim/undodir'
@@ -120,7 +122,7 @@ local sections = {
             mode = open
           end,
         }
-        vim.keymap.set({ 'n', 't' }, '<leader>t', function()
+        vim.keymap.set({ 'n', 't' }, '<leader>1', function()
           for _, fn in ipairs(mode) do
             fn()
           end
@@ -144,10 +146,14 @@ local sections = {
             enable = true,
             keymaps = {
               init_selection = 'gnn', -- set to `false` to disable one of the mappings
-              node_incremental = 'grn',
+              none_incremental = 'grn',
               scope_incremental = 'grc',
               node_decremental = 'grm',
             },
+          },
+          highlight = {
+            enable = true,
+            additional_vim_regex_highlighting = false,
           },
         }
       end,
@@ -155,21 +161,6 @@ local sections = {
     use {
       'nvim-treesitter/nvim-treesitter-context',
       config = function()
-        require('nvim-treesitter.configs').setup {
-          refactor = {
-            navigation = {
-              enable = true,
-              -- Assign keymaps to false to disable them, e.g. `goto_definition = false`.
-              keymaps = {
-                goto_definition = 'gnd',
-                list_definitions = 'gnD',
-                list_definitions_toc = 'gO',
-                goto_next_usage = '<a-*>',
-                goto_previous_usage = '<a-#>',
-              },
-            },
-          },
-        }
       end,
     }
     use {
@@ -205,6 +196,43 @@ local sections = {
       'nvim-telescope/telescope.nvim',
       tag = '0.1.1',
       requires = { { 'nvim-lua/plenary.nvim' } },
+      config = function()
+        local builtin = require 'telescope.builtin'
+        vim.keymap.set('n', '<leader>th', builtin.command_history)
+      end,
+    }
+    use {
+      'nvim-treesitter/nvim-treesitter-refactor',
+      after = 'nvim-treesitter',
+      config = function()
+        require('nvim-treesitter.configs').setup {
+          refactor = {
+            navigation = {
+              enable = true,
+              -- Assign keymaps to false to disable them, e.g. `goto_definition = false`.
+              keymaps = {
+                goto_definition = '<leader>sd',
+                list_definitions = '<leader>sD',
+                list_definitions_toc = '<leader>sO',
+                goto_next_usage = '<A-ä>',
+                goto_previous_usage = '<A-ö>',
+              },
+            },
+            highlight_definitions = {
+              enable = true,
+              -- Set to false if you have an `updatetime` of ~100.
+              clear_on_cursor_move = false,
+            },
+            smart_rename = {
+              enable = true,
+              -- Assign keymaps to false to disable them, e.g. `smart_rename = false`.
+              keymaps = {
+                smart_rename = '<leader>sr',
+              },
+            },
+          },
+        }
+      end,
     }
     use 'jose-elias-alvarez/null-ls.nvim'
     use_rocks 'jsregexp'
@@ -317,7 +345,6 @@ local lsp_capabilities = require('cmp_nvim_lsp').default_capabilities()
 local lspconfig = require 'lspconfig'
 local lsp_attach = function(_, bufnr)
   local bufopts = { noremap = true, silent = true, buffer = bufnr }
-  vim.keymap.set('n', '<leader>rn', vim.lsp.buf.rename, bufopts)
   vim.keymap.set('n', '<leader>f', function()
     vim.lsp.buf.format { async = true }
   end, bufopts)
