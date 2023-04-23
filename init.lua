@@ -26,10 +26,8 @@ local sections = {
     vim.keymap.set({ 'c', 't', 'l' }, 'Ö', '[', { remap = true })
     vim.keymap.set({ 'c', 't', 'l' }, 'Ä', ']', { remap = true })
 
+    -- follow link
     vim.keymap.set('n', '<leader>l', '<c-]>')
-
-    vim.keymap.set('n', '<leader>sh', '<cmd>set hlsearch!<cr>')
-    vim.keymap.set('n', '<leader>sc', '<cmd>noh<cr>')
 
     -- v causes problems with snippets
     vim.keymap.set('x', 'J', ':m \'>+1<CR>gv=gv')
@@ -77,7 +75,8 @@ local sections = {
     vim.opt.imcmdline = true
     vim.opt.iminsert = 1
     vim.opt.hlsearch = false
-    vim.opt.timeout = false
+    vim.opt.timeout = true
+    vim.opt.timeoutlen = 1000
     vim.opt.guifont = 'JetBrainsMonoNL NF:h12'
     vim.opt.mouse = 'vni'
 
@@ -108,6 +107,25 @@ local sections = {
       end,
     }
     use {
+      'folke/which-key.nvim',
+      config = function()
+        local wk = require 'which-key'
+        wk.register({
+          t = { name = 'Telescope' },
+          s = {
+            name = 'Treesitter',
+            d = 'Goto definition',
+            D = 'List definitions',
+            O = 'List definitions TOC',
+            r = 'Rename',
+          },
+        }, {
+          prefix = '<leader>',
+          mode = 'n',
+        })
+      end,
+    }
+    use {
       'akinsho/toggleterm.nvim',
       tag = '*',
       config = function()
@@ -122,7 +140,7 @@ local sections = {
             mode = open
           end,
         }
-        vim.keymap.set({ 'n', 't' }, '<leader>1', function()
+        vim.keymap.set({ 'n', 't' }, '<leader>a', function()
           for _, fn in ipairs(mode) do
             fn()
           end
@@ -153,11 +171,7 @@ local sections = {
         }
       end,
     }
-    use {
-      'nvim-treesitter/nvim-treesitter-context',
-      config = function()
-      end,
-    }
+    use 'nvim-treesitter/nvim-treesitter-context'
     use {
       'nvim-treesitter/nvim-treesitter-textobjects',
       after = 'nvim-treesitter',
@@ -173,6 +187,8 @@ local sections = {
                 -- You can use the capture groups defined in textobjects.scm
                 ['af'] = '@function.outer',
                 ['if'] = '@function.inner',
+                ['aj'] = '@parameter.outer',
+                ['ij'] = '@parameter.inner',
                 ['ac'] = '@class.outer',
                 -- You can optionally set descriptions to the mappings (used in the desc parameter of
                 -- nvim_buf_set_keymap) which plugins like which-key display
@@ -193,8 +209,8 @@ local sections = {
       requires = { { 'nvim-lua/plenary.nvim' } },
       config = function()
         local builtin = require 'telescope.builtin'
-        vim.keymap.set('n', '<leader>th', builtin.command_history)
-        vim.keymap.set('n', '<leader>tb', builtin.buffers)
+        vim.keymap.set('n', '<leader>th', builtin.command_history, { desc = 'Command history' })
+        vim.keymap.set('n', '<leader>tb', builtin.buffers, { desc = 'Buffers' })
       end,
     }
     use {
