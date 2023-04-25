@@ -101,6 +101,12 @@ local sections = {
   ['plugins'] = function(use)
     use 'wbthomason/packer.nvim'
     use {
+      'lewis6991/gitsigns.nvim',
+      config = function()
+        require('gitsigns').setup()
+      end,
+    }
+    use {
       'rebelot/kanagawa.nvim',
       config = function()
         vim.cmd 'colorscheme kanagawa-dragon'
@@ -171,6 +177,7 @@ local sections = {
         }
       end,
     }
+    use 'nvim-treesitter/playground'
     use 'nvim-treesitter/nvim-treesitter-context'
     use {
       'nvim-treesitter/nvim-treesitter-textobjects',
@@ -179,6 +186,12 @@ local sections = {
       config = function()
         require('nvim-treesitter.configs').setup {
           textobjects = {
+            move = {
+              enable = true,
+              set_jumps = true,
+              goto_next_start = { ['Ä'] = '@object_property' },
+              goto_previous_start = { ['Ö'] = '@object_property' },
+            },
             select = {
               enable = true,
               -- Automatically jump forward to textobj, similar to targets.vim
