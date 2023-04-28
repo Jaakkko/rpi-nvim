@@ -99,7 +99,18 @@ local sections = {
     vim.opt.autoread = true
   end,
   ['plugins'] = function(use)
-    use 'wbthomason/packer.nvim'
+    use {
+      'wbthomason/packer.nvim',
+      config = function()
+        require('colorizer').setup()
+      end,
+    }
+    use 'norcalli/nvim-colorizer.lua'
+    use 'nvim-tree/nvim-web-devicons'
+    use {
+      'feline-nvim/feline.nvim',
+      requires = 'nvim-tree/nvim-web-devicons',
+    }
     use {
       'lewis6991/gitsigns.nvim',
       config = function()
@@ -116,6 +127,22 @@ local sections = {
       'folke/which-key.nvim',
       config = function()
         local wk = require 'which-key'
+        wk.setup {
+          plugins = {
+            presets = {
+              operators = false,
+            },
+          },
+          triggers_nowait = {
+            -- marks
+            '`',
+            '\'',
+            'g`',
+            'g\'',
+            -- spelling
+            'z=',
+          },
+        }
         wk.register({
           t = { name = 'Telescope' },
           s = {
@@ -406,7 +433,7 @@ local sections = {
           server = {
             on_attach = function(client, bufnr)
               vim.keymap.set('n', '<C-space>', rt.hover_actions.hover_actions, { buffer = bufnr })
-              vim.keymap.set('n', '<leader>a', rt.code_action_group.code_action_group, { buffer = bufnr })
+              vim.keymap.set('n', '<leader>la', rt.code_action_group.code_action_group, { buffer = bufnr })
               return lsp_attach(client, bufnr)
             end,
             capabilities = lsp_capabilities,
