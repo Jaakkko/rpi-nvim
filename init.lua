@@ -114,7 +114,64 @@ local sections = {
     use {
       'lewis6991/gitsigns.nvim',
       config = function()
-        require('gitsigns').setup()
+        require('gitsigns').setup {
+          on_attach = function(bufnr)
+            local gs = package.loaded.gitsigns
+
+            local function map(mode, l, r, opts)
+              opts = opts or {}
+              opts.buffer = bufnr
+              vim.keymap.set(mode, l, r, opts)
+            end
+
+            -- Navigation
+            map('n', '<C-j>', function()
+              if vim.wo.diff then
+                return '<C-j>'
+              end
+              vim.schedule(function()
+                gs.next_hunk()
+              end)
+              return '<Ignore>'
+            end, { expr = true })
+
+            map('n', '<C-k>', function()
+              if vim.wo.diff then
+                return '<C-k>'
+              end
+              vim.schedule(function()
+                gs.prev_hunk()
+              end)
+              return '<Ignore>'
+            end, { expr = true })
+
+            -- Actions
+            map('n', '<leader>gs', gs.stage_hunk, { desc = 'Stage hunk' })
+            map('n', '<leader>gr', gs.reset_hunk, { desc = 'Reset hunk' })
+            map('v', '<leader>gs', function()
+              gs.stage_hunk { vim.fn.line '.', vim.fn.line 'v' }
+            end, { desc = 'Stage hunk' })
+            map('v', '<leader>gr', function()
+              gs.reset_hunk { vim.fn.line '.', vim.fn.line 'v' }
+            end, { desc = 'Reset hunk' })
+            map('n', '<leader>gS', gs.stage_buffer, { desc = 'Stage buffer' })
+            map('n', '<leader>gu', gs.undo_stage_hunk, { desc = 'Undo stage hunk' })
+            map('n', '<leader>gR', gs.reset_buffer, { desc = 'Reset buffer' })
+            map('n', '<leader>gp', gs.preview_hunk, { desc = 'Preview hunk' })
+            map('n', '<leader>gb', function()
+              gs.blame_line { full = true }
+            end, { desc = 'Blame line' })
+            map('n', '<leader>gtb', gs.toggle_current_line_blame, { desc = 'Toggle blame' })
+            map('n', '<leader>gd', gs.diffthis, { desc = 'Diff' })
+            map('n', '<leader>gD', function()
+              gs.diffthis '~'
+            end, { desc = 'Diff' })
+            map('n', '<leader>gtd', gs.toggle_deleted, { desc = 'Toggle deleted' })
+
+            -- Text object
+            -- map({ 'o', 'x' }, 'ih', ':<C-U>Gitsigns select_hunk<CR>')
+          end,
+        }
       end,
     }
     use {
@@ -152,6 +209,9 @@ local sections = {
             O = 'List definitions TOC',
             r = 'Rename',
           },
+          g = {
+            name = 'Gitsigns',
+          },
         }, {
           prefix = '<leader>',
           mode = 'n',
@@ -187,6 +247,7 @@ local sections = {
         ts_update()
       end,
       config = function()
+        -- bracket matching??? gF ~/leetcode/valid_parenthesis/src/main.rs:33
         require('nvim-treesitter.configs').setup {
           incremental_selection = {
             enable = true,
@@ -298,6 +359,19 @@ local sections = {
         }
       end,
     }
+    use {
+      'windwp/nvim-autopairs',
+      after = 'nvim-treesitter',
+      config = function()
+        require('nvim-autopairs').setup {
+          enable_afterquote = false,
+          check_ts = true,
+          ts_config = {
+            rust = { 'char_literal' },
+          },
+        }
+      end,
+    }
     use_rocks 'jsregexp'
     use {
       'williamboman/mason.nvim',
@@ -309,7 +383,6 @@ local sections = {
       'hrsh7th/cmp-nvim-lua',
       'hrsh7th/cmp-nvim-lsp',
       'hrsh7th/nvim-cmp',
-      'windwp/nvim-autopairs',
       'simrat39/rust-tools.nvim',
     }
   end,
@@ -323,11 +396,6 @@ local sections = {
       enable_autosnippets = true,
     }
 
-    -- autopairs
-    require('nvim-autopairs').setup()
-    local cmp_autopairs = require 'nvim-autopairs.completion.cmp'
-
-    cmp.event:on('confirm_done', cmp_autopairs.on_confirm_done())
     cmp.setup {
       snippet = {
         expand = function(args)
