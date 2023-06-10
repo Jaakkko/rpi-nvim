@@ -74,9 +74,9 @@ local sections = {
 
     vim.opt.imcmdline = true
     vim.opt.iminsert = 1
-    vim.opt.hlsearch = false
     vim.opt.timeout = true
     vim.opt.timeoutlen = 1000
+
     vim.opt.guifont = 'JetBrainsMonoNL NFP:h12'
     vim.opt.mouse = 'vni'
 
