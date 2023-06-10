@@ -27,7 +27,7 @@ local sections = {
     vim.keymap.set({ 'c', 't', 'l' }, 'Ä', ']', { remap = true })
 
     -- follow link
-    vim.keymap.set('n', '<leader>l', '<c-]>')
+    vim.keymap.set('n', '<leader>l', '<c-]>', { desc = 'Follow link' })
 
     -- v causes problems with snippets
     vim.keymap.set('x', 'J', ':m \'>+1<CR>gv=gv')
@@ -77,7 +77,7 @@ local sections = {
     vim.opt.hlsearch = false
     vim.opt.timeout = true
     vim.opt.timeoutlen = 1000
-    vim.opt.guifont = 'JetBrainsMonoNL NF:h12'
+    vim.opt.guifont = 'JetBrainsMonoNL NFP:h12'
     vim.opt.mouse = 'vni'
 
     vim.opt.completeopt = { 'menu', 'menuone', 'noselect' }
@@ -145,27 +145,32 @@ local sections = {
               return '<Ignore>'
             end, { expr = true })
 
+            local stage_hunk_visual = function()
+              gs.stage_hunk { vim.fn.line '.', vim.fn.line 'v' }
+            end
+            local reset_hunk_visual = function()
+              gs.reset_hunk { vim.fn.line '.', vim.fn.line 'v' }
+            end
+            local blame_line = function()
+              gs.blame_line { full = true }
+            end
+            local diff_against_last_commit = function()
+              gs.diffthis '~'
+            end
+
             -- Actions
             map('n', '<leader>gs', gs.stage_hunk, { desc = 'Stage hunk' })
             map('n', '<leader>gr', gs.reset_hunk, { desc = 'Reset hunk' })
-            map('v', '<leader>gs', function()
-              gs.stage_hunk { vim.fn.line '.', vim.fn.line 'v' }
-            end, { desc = 'Stage hunk' })
-            map('v', '<leader>gr', function()
-              gs.reset_hunk { vim.fn.line '.', vim.fn.line 'v' }
-            end, { desc = 'Reset hunk' })
+            map('v', '<leader>gs', stage_hunk_visual, { desc = 'Stage hunk' })
+            map('v', '<leader>gr', reset_hunk_visual, { desc = 'Reset hunk' })
             map('n', '<leader>gS', gs.stage_buffer, { desc = 'Stage buffer' })
             map('n', '<leader>gu', gs.undo_stage_hunk, { desc = 'Undo stage hunk' })
             map('n', '<leader>gR', gs.reset_buffer, { desc = 'Reset buffer' })
             map('n', '<leader>gp', gs.preview_hunk, { desc = 'Preview hunk' })
-            map('n', '<leader>gb', function()
-              gs.blame_line { full = true }
-            end, { desc = 'Blame line' })
+            map('n', '<leader>gb', blame_line, { desc = 'Blame line' })
             map('n', '<leader>gtb', gs.toggle_current_line_blame, { desc = 'Toggle blame' })
             map('n', '<leader>gd', gs.diffthis, { desc = 'Diff' })
-            map('n', '<leader>gD', function()
-              gs.diffthis '~'
-            end, { desc = 'Diff' })
+            map('n', '<leader>gD', diff_against_last_commit, { desc = 'Diff' })
             map('n', '<leader>gtd', gs.toggle_deleted, { desc = 'Toggle deleted' })
 
             -- Text object
@@ -222,22 +227,8 @@ local sections = {
       'akinsho/toggleterm.nvim',
       tag = '*',
       config = function()
-        local open = { vim.cmd.write, vim.cmd.ToggleTerm }
-        local close = { vim.cmd.ToggleTerm }
-        local mode = open
-        require('toggleterm').setup {
-          on_open = function()
-            mode = close
-          end,
-          on_close = function()
-            mode = open
-          end,
-        }
-        vim.keymap.set({ 'n', 't' }, '<leader>a', function()
-          for _, fn in ipairs(mode) do
-            fn()
-          end
-        end)
+        require('toggleterm').setup()
+        vim.keymap.set({ 'n', 't' }, '<leader>a', vim.cmd.ToggleTerm)
       end,
     }
     use {
@@ -312,6 +303,11 @@ local sections = {
         local builtin = require 'telescope.builtin'
         vim.keymap.set('n', '<leader>th', builtin.command_history, { desc = 'Command history' })
         vim.keymap.set('n', '<leader>tb', builtin.buffers, { desc = 'Buffers' })
+        vim.keymap.set('n', '<leader>tfs', builtin.current_buffer_fuzzy_find, { desc = 'Fuzzy find current file' })
+        vim.keymap.set('n', '<leader>tps', builtin.live_grep, { desc = 'Fuzzy find current working directory' })
+        vim.keymap.set('n', '<C-p>', function()
+          builtin.git_files { show_untracked = true }
+        end, { desc = 'Find file' })
       end,
     }
     use {
@@ -466,11 +462,14 @@ local sections = {
     local lspconfig = require 'lspconfig'
     local lsp_attach = function(_, bufnr)
       local bufopts = { noremap = true, silent = true, buffer = bufnr }
-      vim.keymap.set('n', '<leader>f', vim.lsp.buf.format, bufopts)
+      vim.keymap.set({ 'n', 'v' }, '<leader>f', vim.lsp.buf.format, bufopts)
     end
     require('mason').setup()
     require('mason-lspconfig').setup {
-      ensure_installed = { 'lua_ls', 'rust_analyzer' },
+      ensure_installed = {
+        'lua_ls',
+        'rust_analyzer',
+      },
     }
     require('mason-lspconfig').setup_handlers {
       function(server_name)
