@@ -109,10 +109,6 @@ local sections = {
     use 'norcalli/nvim-colorizer.lua'
     use 'nvim-tree/nvim-web-devicons'
     use {
-      'feline-nvim/feline.nvim',
-      requires = 'nvim-tree/nvim-web-devicons',
-    }
-    use {
       'lewis6991/gitsigns.nvim',
       config = function()
         require('gitsigns').setup {
