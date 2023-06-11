@@ -46,6 +46,7 @@ local sections = {
 
     vim.opt.background = 'dark'
 
+    vim.opt.ignorecase = true
     vim.opt.wildignorecase = true
     vim.opt.nu = true
     vim.opt.rnu = true
@@ -75,9 +76,9 @@ local sections = {
     vim.opt.imcmdline = true
     vim.opt.iminsert = 1
     vim.opt.timeout = true
-    vim.opt.timeoutlen = 1000
+    vim.opt.timeoutlen = 200
 
-    vim.opt.guifont = 'JetBrainsMonoNL NFP:h12'
+    vim.opt.guifont = 'JetBrainsMonoNL Nerd Font Propo:h12'
     vim.opt.mouse = 'vni'
 
     vim.opt.completeopt = { 'menu', 'menuone', 'noselect' }
