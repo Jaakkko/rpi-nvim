@@ -228,7 +228,10 @@ local sections = {
       tag = '*',
       config = function()
         require('toggleterm').setup()
-        vim.keymap.set({ 'n', 't' }, '<leader>a', vim.cmd.ToggleTerm)
+        vim.keymap.set({ 'n', 't' }, '<leader>a', function()
+          vim.cmd 'silent! wall'
+          vim.cmd.ToggleTerm()
+        end)
       end,
     }
     use {
