@@ -306,7 +306,9 @@ local sections = {
         vim.keymap.set('n', '<leader>th', builtin.command_history, { desc = 'Command history' })
         vim.keymap.set('n', '<leader>tb', builtin.buffers, { desc = 'Buffers' })
         vim.keymap.set('n', '<leader>tfs', builtin.current_buffer_fuzzy_find, { desc = 'Fuzzy find current file' })
-        vim.keymap.set('n', '<leader>tps', builtin.live_grep, { desc = 'Fuzzy find current working directory' })
+        vim.keymap.set('n', '<leader>tps', function()
+          builtin.live_grep { additional_args = { '-F' } }
+        end, { desc = 'Search in current directory' })
         vim.keymap.set('n', '<C-p>', function()
           builtin.git_files { show_untracked = true }
         end, { desc = 'Find file' })
