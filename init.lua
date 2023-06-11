@@ -118,6 +118,7 @@ local sections = {
         require('lualine').setup()
       end,
     }
+    use 'tpope/vim-fugitive'
     use {
       'lewis6991/gitsigns.nvim',
       config = function()
