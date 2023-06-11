@@ -29,6 +29,9 @@ local sections = {
     -- follow link
     vim.keymap.set('n', '<leader>l', '<c-]>', { desc = 'Follow link' })
 
+    -- close buffer
+    vim.keymap.set('n', '<leader>q', vim.cmd.bd)
+
     -- v causes problems with snippets
     vim.keymap.set('x', 'J', ':m \'>+1<CR>gv=gv')
     vim.keymap.set('x', 'K', ':m \'<-2<CR>gv=gv')
