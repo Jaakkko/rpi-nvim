@@ -30,7 +30,7 @@ local sections = {
     vim.keymap.set('n', '<leader>l', '<c-]>', { desc = 'Follow link' })
 
     -- close buffer
-    vim.keymap.set('n', '<leader>q', vim.cmd.bd)
+    vim.keymap.set('n', '<leader>x', vim.cmd.bd)
 
     -- v causes problems with snippets
     vim.keymap.set('x', 'J', ':m \'>+1<CR>gv=gv')
@@ -46,6 +46,9 @@ local sections = {
   ['settings'] = function()
     vim.g.neovide_remember_window_size = true
     vim.g.neovide_cursor_animation_length = 0
+
+    vim.g.loaded_netrw = 1
+    vim.g.loaded_netrwPlugin = 1
 
     vim.opt.background = 'dark'
 
@@ -111,6 +114,13 @@ local sections = {
     }
     use 'norcalli/nvim-colorizer.lua'
     use 'nvim-tree/nvim-web-devicons'
+    use {
+      'nvim-tree/nvim-tree.lua',
+      config = function()
+        require('nvim-tree').setup()
+        vim.keymap.set('n', '<leader>e', vim.cmd.NvimTreeFocus, { desc = 'File explorer' })
+      end,
+    }
     use {
       'nvim-lualine/lualine.nvim',
       requires = { 'nvim-tree/nvim-web-devicons', opt = true },
