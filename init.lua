@@ -40,8 +40,6 @@ local sections = {
     vim.keymap.set('n', '<C-u>', '<C-u>zz')
     vim.keymap.set('n', 'n', 'nzzzv')
     vim.keymap.set('n', 'N', 'Nzzzv')
-
-    vim.keymap.set('n', '<F12>', vim.cmd.SearchSession)
   end,
   ['settings'] = function()
     vim.g.neovide_remember_window_size = true
@@ -121,6 +119,48 @@ local sections = {
         vim.keymap.set('n', '<leader>e', vim.cmd.NvimTreeFocus, { desc = 'File explorer' })
       end,
     }
+    use 'nvim-lua/plenary.nvim'
+    use {
+      'nvim-telescope/telescope.nvim',
+      tag = '0.1.1',
+      requires = { { 'nvim-lua/plenary.nvim' } },
+      config = function()
+        local builtin = require 'telescope.builtin'
+        vim.keymap.set('n', '<leader>th', builtin.command_history, { desc = 'Command history' })
+        vim.keymap.set('n', '<leader>tb', builtin.buffers, { desc = 'Buffers' })
+        vim.keymap.set('n', '<leader>tfs', builtin.current_buffer_fuzzy_find, { desc = 'Fuzzy find current file' })
+        vim.keymap.set('n', '<leader>tps', function()
+          builtin.live_grep { additional_args = { '-F' } }
+        end, { desc = 'Search in current directory' })
+        vim.keymap.set('n', '<C-p>', function()
+          builtin.git_files { show_untracked = true }
+        end, { desc = 'Find file' })
+      end,
+    }
+    use {
+      'rmagatti/auto-session',
+      config = function()
+        require('auto-session').setup {
+          log_level = vim.log.levels.ERROR,
+          auto_session_suppress_dirs = { '~/', '~/Projects', '~/Downloads', '/' },
+          auto_session_use_git_branch = false,
+
+          auto_session_enable_last_session = false,
+
+          -- ⚠️ This will only work if Telescope.nvim is installed
+          -- The following are already the default values, no need to provide them if these are already the settings you want.
+          session_lens = {
+            -- If load_on_setup is set to false, one needs to eventually call `require("auto-session").setup_session_lens()` if they want to use session-lens.
+            load_on_setup = true,
+            theme_conf = { border = true },
+            previewer = false,
+          },
+        }
+      end,
+
+      vim.keymap.set('n', '<F12>', require('auto-session.session-lens').search_session),
+    }
+    use 'sindrets/diffview.nvim'
     use {
       'nvim-lualine/lualine.nvim',
       requires = { 'nvim-tree/nvim-web-devicons', opt = true },
@@ -318,24 +358,6 @@ local sections = {
             },
           },
         }
-      end,
-    }
-    use 'nvim-lua/plenary.nvim'
-    use {
-      'nvim-telescope/telescope.nvim',
-      tag = '0.1.1',
-      requires = { { 'nvim-lua/plenary.nvim' } },
-      config = function()
-        local builtin = require 'telescope.builtin'
-        vim.keymap.set('n', '<leader>th', builtin.command_history, { desc = 'Command history' })
-        vim.keymap.set('n', '<leader>tb', builtin.buffers, { desc = 'Buffers' })
-        vim.keymap.set('n', '<leader>tfs', builtin.current_buffer_fuzzy_find, { desc = 'Fuzzy find current file' })
-        vim.keymap.set('n', '<leader>tps', function()
-          builtin.live_grep { additional_args = { '-F' } }
-        end, { desc = 'Search in current directory' })
-        vim.keymap.set('n', '<C-p>', function()
-          builtin.git_files { show_untracked = true }
-        end, { desc = 'Find file' })
       end,
     }
     use {
