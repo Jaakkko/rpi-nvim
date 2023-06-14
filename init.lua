@@ -430,6 +430,7 @@ local sections = {
       'hrsh7th/cmp-nvim-lsp',
       'hrsh7th/nvim-cmp',
       'simrat39/rust-tools.nvim',
+      'p00f/clangd_extensions.nvim',
     }
   end,
   ['cmp'] = function()
@@ -541,6 +542,14 @@ local sections = {
                 callSnippet = 'Both',
               },
             },
+          },
+        }
+      end,
+      ['clangd'] = function()
+        require('clangd_extensions').setup {
+          server = {
+            on_attach = lsp_attach,
+            capabilities = lsp_capabilities,
           },
         }
       end,
