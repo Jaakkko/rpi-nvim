@@ -30,7 +30,7 @@ local sections = {
     vim.keymap.set('n', '<leader>l', '<c-]>', { desc = 'Follow link' })
 
     -- close buffer
-    vim.keymap.set('n', '<leader>x', vim.cmd.bd)
+    vim.keymap.set('n', '<leader>x', vim.cmd.bd, { desc = 'Close buffer' })
 
     -- v causes problems with snippets
     vim.keymap.set('x', 'J', ':m \'>+1<CR>gv=gv')
