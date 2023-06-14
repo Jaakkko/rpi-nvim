@@ -115,7 +115,20 @@ local sections = {
     use {
       'nvim-tree/nvim-tree.lua',
       config = function()
-        require('nvim-tree').setup()
+        require('nvim-tree').setup {
+          on_attach = function(bufnr)
+            local api = require 'nvim-tree.api'
+            api.config.mappings.default_on_attach(bufnr)
+            local function opts(desc)
+              return { desc = 'nvim-tree: ' .. desc, buffer = bufnr, noremap = true, silent = true, nowait = true }
+            end
+            vim.keymap.set('n', 'l', api.tree.change_root_to_node, opts 'cd')
+            vim.keymap.set('n', 'h', api.tree.change_root_to_parent, opts 'Go to parent')
+            vim.keymap.set('n', 'n', function()
+              api.fs.create(api.tree.get_node_under_cursor())
+            end, opts 'New file')
+          end,
+        }
         vim.keymap.set('n', '<leader>e', vim.cmd.NvimTreeFocus, { desc = 'File explorer' })
       end,
     }
