@@ -104,6 +104,15 @@ local sections = {
 
     vim.opt.autoread = true
   end,
+  ['autocommands'] = function()
+    vim.api.nvim_create_autocmd('DirChanged', {
+      pattern = 'global',
+      callback = function(args)
+        require('nvim-tree.api').tree.change_root(args.file)
+        require('lualine').refresh()
+      end,
+    })
+  end,
   ['plugins'] = function(use)
     use {
       'wbthomason/packer.nvim',
