@@ -21,10 +21,10 @@ local sections = {
 
     -- l for r,f and t commands
     -- c for cmd-line
-    vim.keymap.set({ 'c', 't', 'l' }, 'ö', '{', { remap = true })
-    vim.keymap.set({ 'c', 't', 'l' }, 'ä', '}', { remap = true })
-    vim.keymap.set({ 'c', 't', 'l' }, 'Ö', '[', { remap = true })
-    vim.keymap.set({ 'c', 't', 'l' }, 'Ä', ']', { remap = true })
+    vim.keymap.set({ 's', 'c', 't', 'l' }, 'ö', '{', { remap = true })
+    vim.keymap.set({ 's', 'c', 't', 'l' }, 'ä', '}', { remap = true })
+    vim.keymap.set({ 's', 'c', 't', 'l' }, 'Ö', '[', { remap = true })
+    vim.keymap.set({ 's', 'c', 't', 'l' }, 'Ä', ']', { remap = true })
 
     -- follow link
     vim.keymap.set('n', '<leader>l', '<c-]>', { desc = 'Follow link' })
