@@ -71,7 +71,7 @@ local sections = {
     vim.opt.undodir = os.getenv 'HOME' .. '/.vim/undodir'
     vim.opt.undofile = true
 
-    vim.opt.hlsearch = true
+    vim.opt.hlsearch = false
     vim.opt.incsearch = true
 
     vim.opt.termguicolors = true
@@ -104,8 +104,6 @@ local sections = {
     vim.opt.laststatus = 3
 
     vim.opt.autoread = true
-
-    vim.cmd 'TSContextDisable'
   end,
   ['autocommands'] = function()
     vim.api.nvim_create_autocmd('DirChanged', {
@@ -115,42 +113,19 @@ local sections = {
         require('lualine').refresh()
       end,
     })
-    vim.api.nvim_create_autocmd('FileType', {
-      callback = function(args)
-        vim.treesitter.start()
-      end,
-    })
-  end,
-  ['lsp'] = function()
-    vim.api.nvim_create_autocmd('LspAttach', {
-      callback = function(args)
-        local client = vim.lsp.get_client_by_id(args.data.client_id)
-        if client.supports_method 'textDocument/formatting' then
-          local bufopts = { buffer = args.buf, noremap = true, silent = true }
-          vim.keymap.set({ 'n', 'v' }, '<leader>f', vim.lsp.buf.format, bufopts)
-          -- Format the current buffer on save
-          vim.api.nvim_create_autocmd('BufWritePre', {
-            buffer = args.buf,
-            callback = function()
-              vim.lsp.buf.format { bufnr = args.buf, id = client.id }
-            end,
-          })
-        end
-      end,
-    })
   end,
 }
 
 -- Bootstrap lazy.nvim
-local lazypath = vim.fn.stdpath 'data' .. '/lazy/lazy.nvim'
+local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
 if not (vim.uv or vim.loop).fs_stat(lazypath) then
-  local lazyrepo = 'https://github.com/folke/lazy.nvim.git'
-  local out = vim.fn.system { 'git', 'clone', '--filter=blob:none', '--branch=stable', lazyrepo, lazypath }
+  local lazyrepo = "https://github.com/folke/lazy.nvim.git"
+  local out = vim.fn.system({ "git", "clone", "--filter=blob:none", "--branch=stable", lazyrepo, lazypath })
   if vim.v.shell_error ~= 0 then
     vim.api.nvim_echo({
-      { 'Failed to clone lazy.nvim:\n', 'ErrorMsg' },
-      { out, 'WarningMsg' },
-      { '\nPress any key to exit...' },
+      { "Failed to clone lazy.nvim:\n", "ErrorMsg" },
+      { out, "WarningMsg" },
+      { "\nPress any key to exit..." },
     }, true, {})
     vim.fn.getchar()
     os.exit(1)
@@ -159,41 +134,17 @@ end
 vim.opt.rtp:prepend(lazypath)
 
 -- Setup lazy.nvim
-require('lazy').setup {
+require("lazy").setup({
   spec = {
-    {
-      'nvimtools/none-ls.nvim',
-      dependencies = { 'nvim-lua/plenary.nvim' },
-      config = function()
-        local null_ls = require 'null-ls'
-        null_ls.setup {
-          sources = {
-            null_ls.builtins.formatting.stylua,
-            null_ls.builtins.formatting.clang_format,
-          },
-        }
-      end,
-    },
-    {
-      'williamboman/mason.nvim',
-      config = function()
-        require('mason').setup()
-      end,
-    },
-    {
-      'nvim-lualine/lualine.nvim',
-      dependencies = { 'nvim-tree/nvim-web-devicons' },
-      config = function()
-        require('lualine').setup()
-      end,
-    },
-    { 'numToStr/Comment.nvim' },
-    { 'nvim-treesitter/nvim-treesitter-context' },
+    -- add your plugins here
   },
-  install = {},
-  checker = { enabled = false },
-}
+  -- Configure any other settings here. See the documentation for more details.
+  -- colorscheme that will be used when installing plugins.
+  install = { colorscheme = { "habamax" } },
+  -- automatically check for plugin updates
+  checker = { enabled = true },
+})
 
 for section, fn in pairs(sections) do
-  fn()
+    fn()
 end
