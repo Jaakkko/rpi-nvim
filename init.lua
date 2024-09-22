@@ -115,9 +115,10 @@ local sections = {
         require('lualine').refresh()
       end,
     })
-    vim.api.nvim_create_autocmd('FileType', {
-      callback = function(args)
-        vim.treesitter.start()
+    vim.api.nvim_create_autocmd('FocusLost', {
+      pattern = { '*.c', '*.cpp', '*.h' },
+      callback = function()
+        vim.cmd 'wa!'
       end,
     })
   end,
@@ -189,6 +190,17 @@ require('lazy').setup {
     },
     { 'numToStr/Comment.nvim' },
     { 'nvim-treesitter/nvim-treesitter-context' },
+    {
+      'nvim-treesitter/nvim-treesitter',
+      config = function()
+        require('nvim-treesitter.configs').setup {
+          ensure_installed = { 'c', 'lua' },
+          highlight = {
+            enable = true,
+          },
+        }
+      end,
+    },
   },
   install = {},
   checker = { enabled = false },
